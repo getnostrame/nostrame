@@ -2882,6 +2882,49 @@ hr {
   }
 }
 
+/* Auto-Lock Form */
+.auto-lock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__field {
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    select {
+      display: block;
+      width: 100%;
+      background: var(--color-bg-dark);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-md);
+      color: var(--color-text);
+      padding: 12px 14px;
+      font-size: 14px;
+      transition: all var(--transition-fast);
+      outline: none;
+      cursor: pointer;
+      appearance: auto;
+
+      &:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-glow);
+      }
+
+      &:hover:not(:focus) {
+        border-color: var(--color-text-muted);
+      }
+    }
+  }
+}
+
 /* Import Form */
 .import-form {
   display: flex;

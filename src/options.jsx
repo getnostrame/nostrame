@@ -9,6 +9,7 @@ import ResetVault from './components/ResetVault'
 import ImportVault from './components/ImportVault'
 import ExportVault from './components/ExportVault'
 import Secrets from './components/Secrets'
+import AutoLockTimeout from './components/AutoLockTimeout'
 
 // Connect to background to pause lock timer while options page is open
 browser.runtime.connect({ name: 'ui-active' })
@@ -104,6 +105,7 @@ function Options() {
 
                   {activeTab === 'security' && (
                     <div className="options-section">
+                      <AutoLockTimeout />
                       <ChangePassword fetchData={fetchData} />
                       <ResetVault fetchData={fetchData} />
                     </div>

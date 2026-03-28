@@ -370,10 +370,13 @@ const height = 600
 browser.runtime.onInstalled.addListener(async (_, __, reason) => {
   if (reason === 'install') browser.runtime.openOptionsPage()
 
-  // Set default auto-lock timeout
-  await browser.storage.local.set({
-    "autoLockTimeout": DEFAULT_LOCK_TIMEOUT
-  })
+  // Set default auto-lock timeout (only if not already configured)
+  const { autoLockTimeout } = await browser.storage.local.get(['autoLockTimeout'])
+  if (autoLockTimeout === undefined) {
+    await browser.storage.local.set({
+      "autoLockTimeout": DEFAULT_LOCK_TIMEOUT
+    })
+  }
 
   // Cleanup: remove unencrypted vault and legacy relays from local storage
   await browser.storage.local.remove(['vault', 'relays'])
@@ -462,6 +465,13 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
     // ========================================================================
     case 'REQUEST_SECRET_FOR_DISPLAY':
       return handleRequestSecretForDisplay(message.password, message.secretType, message.accountIndex)
+
+    // ========================================================================
+    // SETTINGS
+    // ========================================================================
+    case 'AUTO_LOCK_TIMEOUT_CHANGED':
+      resetLockTimer()
+      return { success: true }
   }
 
   if (message.openSignUp) {
