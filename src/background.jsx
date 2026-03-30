@@ -1032,7 +1032,7 @@ browser.storage.onChanged.addListener((changes, area) => {
 // Note: We no longer listen for session storage changes because
 // decrypted vault is now stored ONLY in background memory, not session storage
 
-async function handleContentScriptMessage({type, params, host}) {
+async function handleContentScriptMessage({type, params, host, favicon}) {
   if (NO_PERMISSIONS_REQUIRED[type]) {
     // authorized, and we won't do anything with private key here, so do a separate handler
     switch (type) {
@@ -1107,12 +1107,29 @@ async function handleContentScriptMessage({type, params, host}) {
         const currentAccount = await getCurrentAccount()
         const currentPubkey = currentAccount ? getPublicKey(currentAccount) : null
 
+        // Get account name and picture from profile cache if available
+        let accountName = ''
+        let accountPicture = ''
+        if (currentPubkey) {
+          try {
+            const { getCachedProfile } = await import('./services/cache.js')
+            const cached = await getCachedProfile(currentPubkey)
+            if (cached?.data) {
+              accountName = cached.data.name || cached.data.display_name || ''
+              accountPicture = cached.data.picture || ''
+            }
+          } catch (e) { /* cache unavailable */ }
+        }
+
         let qs = new URLSearchParams({
           host,
           id,
           params: JSON.stringify(params),
           type,
           pubkey: currentPubkey || '',
+          accountName,
+          accountPicture,
+          favicon: favicon || '',
           // If permission already granted, just need unlock (no permission UI needed)
           unlockOnly: allowed === true ? 'true' : ''
         })

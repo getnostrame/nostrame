@@ -1666,13 +1666,25 @@ hr {
 .prompt__account {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 10px;
   background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.08) 100%);
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
   margin-bottom: 12px;
+}
+
+.prompt__account-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.prompt__account-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .prompt__account-label {
@@ -1681,6 +1693,15 @@ hr {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
+}
+
+.prompt__account-name {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .prompt__account-key {
@@ -1695,11 +1716,25 @@ hr {
   margin-bottom: 12px;
 }
 
+.prompt__host-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.prompt__favicon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
 .prompt__host {
   font-size: 16px;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 4px;
   word-break: break-all;
   background: var(--gradient-primary);
   -webkit-background-clip: text;

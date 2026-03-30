@@ -2,6 +2,7 @@ import browser from 'webextension-polyfill'
 import React, { useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import * as nip19 from 'nostr-tools/nip19'
+import Identicon from 'identicon.js'
 
 import {
   PERMISSION_NAMES,
@@ -15,6 +16,12 @@ function shortenPubkey(pubkey) {
   return npub.slice(0, 12) + '...' + npub.slice(-8)
 }
 
+function getIdenticonUri(pubkey) {
+  if (!pubkey || pubkey.length < 15) return ''
+  const svg = new Identicon(pubkey, { format: 'svg' }).toString()
+  return `data:image/svg+xml;base64,${svg}`
+}
+
 function Prompt() {
   let qs = new URLSearchParams(location.search)
   let id = qs.get('id')
@@ -22,6 +29,9 @@ function Prompt() {
   let type = qs.get('type')
   let pubkey = qs.get('pubkey')
   let unlockOnly = qs.get('unlockOnly') === 'true'
+  let favicon = qs.get('favicon') || ''
+  let accountName = qs.get('accountName') || ''
+  let accountPicture = qs.get('accountPicture') || ''
   let params, event
   try {
     params = JSON.parse(qs.get('params'))
@@ -36,6 +46,9 @@ function Prompt() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [currentPubkey, setCurrentPubkey] = useState(pubkey)
+  const [currentName, setCurrentName] = useState(accountName)
+  const [faviconError, setFaviconError] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
 
   useEffect(() => {
     checkLockState()
@@ -141,7 +154,17 @@ function Prompt() {
         </div>
 
         <div className="prompt__request">
-          <div className="prompt__host">{host}</div>
+          <div className="prompt__host-row">
+            {favicon && !faviconError && (
+              <img
+                src={favicon}
+                alt=""
+                className="prompt__favicon"
+                onError={() => setFaviconError(true)}
+              />
+            )}
+            <div className="prompt__host">{host}</div>
+          </div>
           <p className="prompt__message">
             is requesting permission to <strong>{PERMISSION_NAMES[type]}</strong>
           </p>
@@ -183,14 +206,33 @@ function Prompt() {
       {/* Active account indicator */}
       {currentPubkey && (
         <div className="prompt__account">
-          <span className="prompt__account-label">Signing as</span>
-          <span className="prompt__account-key">{shortenPubkey(currentPubkey)}</span>
+          <img
+            src={accountPicture && !avatarError ? accountPicture : getIdenticonUri(currentPubkey)}
+            alt=""
+            className="prompt__account-avatar"
+            onError={() => setAvatarError(true)}
+          />
+          <div className="prompt__account-info">
+            <span className="prompt__account-label">Signing as</span>
+            {currentName && <span className="prompt__account-name">{currentName}</span>}
+            <span className="prompt__account-key">{shortenPubkey(currentPubkey)}</span>
+          </div>
         </div>
       )}
 
       {/* Request details */}
       <div className="prompt__request">
-        <div className="prompt__host">{host}</div>
+        <div className="prompt__host-row">
+          {favicon && !faviconError && (
+            <img
+              src={favicon}
+              alt=""
+              className="prompt__favicon"
+              onError={() => setFaviconError(true)}
+            />
+          )}
+          <div className="prompt__host">{host}</div>
+        </div>
         <p className="prompt__message">
           is requesting permission to <strong>{PERMISSION_NAMES[type]}</strong>
         </p>

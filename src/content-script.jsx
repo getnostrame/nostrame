@@ -7,6 +7,12 @@ script.setAttribute('type', 'text/javascript')
 script.setAttribute('src', browser.runtime.getURL('nostr-provider.js'))
 document.head.appendChild(script)
 
+function getFavicon() {
+  const link = document.querySelector('link[rel~="icon"], link[rel="shortcut icon"]')
+  if (link) return link.href
+  return location.origin + '/favicon.ico'
+}
+
 // listen for messages from that script
 window.addEventListener('message', async message => {
   if (message.source !== window) return
@@ -20,7 +26,8 @@ window.addEventListener('message', async message => {
     response = await browser.runtime.sendMessage({
       type: message.data.type,
       params: message.data.params,
-      host: location.host
+      host: location.host,
+      favicon: getFavicon()
     })
   } catch (error) {
     response = {error}
