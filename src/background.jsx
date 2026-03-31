@@ -364,6 +364,32 @@ function getCurrentAccount() {
   return privateMaterial.accountDefault
 }
 
+/**
+ * Find a private key in the vault that matches a given public key.
+ * Searches both derived and imported accounts.
+ * Returns the private key (hex) or null if not found.
+ *
+ * SECURITY: The returned value must NEVER be sent to UI or stored outside this worker.
+ */
+function findAccountByPubkey(targetPubkey) {
+  if (!privateMaterial || !targetPubkey) return null
+
+  const allAccounts = [
+    ...(privateMaterial.accounts || []),
+    ...(privateMaterial.importedAccounts || [])
+  ]
+
+  for (const account of allAccounts) {
+    try {
+      if (getPublicKey(account.prvKey) === targetPubkey) {
+        return account.prvKey
+      }
+    } catch (e) { /* skip invalid keys */ }
+  }
+
+  return null
+}
+
 const width = 400
 const height = 600
 
@@ -1074,6 +1100,20 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
 
     return
   } else {
+    // For signEvent, if the event has a pubkey, verify we own that key
+    // This ensures we sign with the correct account regardless of the default
+    const requestedPubkey = (type === 'signEvent' && params?.event?.pubkey) ? params.event.pubkey : null
+
+    if (requestedPubkey && isVaultUnlocked()) {
+      const match = findAccountByPubkey(requestedPubkey)
+      if (!match) {
+        // Extension doesn't have this key - reject without prompt
+        return {
+          error: {message: `no account found for pubkey ${requestedPubkey.slice(0, 8)}...`}
+        }
+      }
+    }
+
     // acquire mutex here before reading policies
     releasePromptMutex = await promptMutex.acquire()
 
@@ -1103,9 +1143,10 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
         crypto.getRandomValues(array)
         let id = Array.from(array, x => x.toString(16)).join('')
 
-        // Get current account to show in prompt (will be null if locked)
+        // Get the account that will be used for signing
+        // If event has a pubkey, use that account; otherwise use default
         const currentAccount = await getCurrentAccount()
-        const currentPubkey = currentAccount ? getPublicKey(currentAccount) : null
+        const currentPubkey = requestedPubkey || (currentAccount ? getPublicKey(currentAccount) : null)
 
         // Get account name and picture from profile cache if available
         let accountName = ''
@@ -1184,7 +1225,20 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
         return getPublicKey(activeAccount)
       }
       case 'signEvent': {
-        const event = finalizeEvent(params.event, activeAccount)
+        // Use the account matching event.pubkey if available, otherwise default
+        let signingKey = activeAccount
+        const eventPubkey = params?.event?.pubkey
+        if (eventPubkey) {
+          const matched = findAccountByPubkey(eventPubkey)
+          if (matched) {
+            signingKey = matched
+          } else {
+            // Event requests a pubkey we don't own - reject
+            return {error: {message: `no account found for pubkey ${eventPubkey.slice(0, 8)}...`}}
+          }
+        }
+
+        const event = finalizeEvent(params.event, signingKey)
 
         return validateEvent(event)
           ? event
