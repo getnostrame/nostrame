@@ -29,6 +29,20 @@ import {
 import { clearAllCaches as clearProfileCaches, persistEncryptedCachesWithKey, restoreEncryptedCachesWithKey } from './services/cache'
 import { closeDiscoveryPool } from './helpers/outbox'
 
+/**
+ * Convert a hex-encoded private key string to Uint8Array.
+ * nostr-tools v2 changed its API to require Uint8Array for all private key
+ * parameters (getPublicKey, finalizeEvent, nip04, nip44).  Vault data stores
+ * private keys as hex strings, so we convert at every call site.
+ */
+function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2)
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16)
+  }
+  return bytes
+}
+
 let openPrompt = null
 let promptMutex = new Mutex()
 let releasePromptMutex = () => {}
@@ -343,7 +357,7 @@ function getSharedSecret(sk, peer) {
   let key = secretsCache.get(peer)
 
   if (!key) {
-    key = nip44.v2.utils.getConversationKey(sk, peer)
+    key = nip44.v2.utils.getConversationKey(hexToBytes(sk), peer)
     secretsCache.set(peer, key)
   }
 
@@ -381,7 +395,7 @@ function findAccountByPubkey(targetPubkey) {
 
   for (const account of allAccounts) {
     try {
-      if (getPublicKey(account.prvKey) === targetPubkey) {
+      if (getPublicKey(hexToBytes(account.prvKey)) === targetPubkey) {
         return account.prvKey
       }
     } catch (e) { /* skip invalid keys */ }
@@ -962,7 +976,7 @@ function handleGetAccountsList() {
   const derivedAccounts = privateMaterial.accounts || []
   for (let i = 0; i < derivedAccounts.length; i++) {
     const prvKey = derivedAccounts[i].prvKey
-    const pubKey = getPublicKey(prvKey)
+    const pubKey = getPublicKey(hexToBytes(prvKey))
     accounts.push({
       index: i,
       type: 'derived',
@@ -976,7 +990,7 @@ function handleGetAccountsList() {
   const importedAccounts = privateMaterial.importedAccounts || []
   for (let i = 0; i < importedAccounts.length; i++) {
     const prvKey = importedAccounts[i].prvKey
-    const pubKey = getPublicKey(prvKey)
+    const pubKey = getPublicKey(hexToBytes(prvKey))
     accounts.push({
       index: i,
       type: 'imported',
@@ -1146,7 +1160,7 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
         // Get the account that will be used for signing
         // If event has a pubkey, use that account; otherwise use default
         const currentAccount = await getCurrentAccount()
-        const currentPubkey = requestedPubkey || (currentAccount ? getPublicKey(currentAccount) : null)
+        const currentPubkey = requestedPubkey || (currentAccount ? getPublicKey(hexToBytes(currentAccount)) : null)
 
         // Get account name and picture from profile cache if available
         let accountName = ''
@@ -1222,7 +1236,7 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
   try {
     switch (type) {
       case 'getPublicKey': {
-        return getPublicKey(activeAccount)
+        return getPublicKey(hexToBytes(activeAccount))
       }
       case 'signEvent': {
         // Use the account matching event.pubkey if available, otherwise default
@@ -1238,7 +1252,7 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
           }
         }
 
-        const event = finalizeEvent(params.event, signingKey)
+        const event = finalizeEvent(params.event, hexToBytes(signingKey))
 
         return validateEvent(event)
           ? event
@@ -1246,11 +1260,11 @@ async function handleContentScriptMessage({type, params, host, favicon}) {
       }
       case 'nip04.encrypt': {
         let {peer, plaintext} = params
-        return nip04.encrypt(activeAccount, peer, plaintext)
+        return nip04.encrypt(hexToBytes(activeAccount), peer, plaintext)
       }
       case 'nip04.decrypt': {
         let {peer, ciphertext} = params
-        return nip04.decrypt(activeAccount, peer, ciphertext)
+        return nip04.decrypt(hexToBytes(activeAccount), peer, ciphertext)
       }
       case 'nip44.encrypt': {
         const {peer, plaintext} = params

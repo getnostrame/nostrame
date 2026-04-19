@@ -4,7 +4,10 @@ window.nostr = {
 
   async getPublicKey() {
     if (this._pubkey) return this._pubkey
-    this._pubkey = await this._call('getPublicKey', {})
+    // Don't cache on the promise itself – if the call rejects (e.g. context
+    // invalidated) _pubkey must stay null so the next call retries properly.
+    const pubkey = await this._call('getPublicKey', {})
+    this._pubkey = pubkey
     return this._pubkey
   },
 
