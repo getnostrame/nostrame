@@ -64,11 +64,11 @@ const AccountDetailsModal = ({ isOpen, onClose, accountData }) => {
         { !showSecret && !showNcryptsec ? (
           <>
             <h2 style={{ textAlign: 'center' }}>{account.name}</h2>
-            <div style={{ height: "auto", margin: "0 auto", maxWidth: 200, width: "100%" }}>
+            <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%", background: "#fff", padding: 16, borderRadius: 8, boxSizing: "border-box" }}>
               <QRCodeSVG
                 style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                 size={256}
-                value={(format === 'bech32' ? account.npub : account.pubKey)}
+                value={(format === 'bech32' ? account.npub : account.pubKey)?.toUpperCase()}
               />
             </div>
             <p className="break-string">
@@ -92,11 +92,11 @@ const AccountDetailsModal = ({ isOpen, onClose, accountData }) => {
         ) : showSecret ? (
           <>
             <h2 style={{ textAlign: 'center' }}>Private key</h2>
-            <div style={{ height: "auto", margin: "0 auto", maxWidth: 200, width: "100%" }}>
+            <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%", background: "#fff", padding: 16, borderRadius: 8, boxSizing: "border-box" }}>
               <QRCodeSVG
                 style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                 size={256}
-                value={(format === 'bech32' ? account.nsec : account.prvKey)}
+                value={(format === 'bech32' ? account.nsec : account.prvKey)?.toUpperCase()}
               />
             </div>
             <p className="break-string">
@@ -136,11 +136,11 @@ const AccountDetailsModal = ({ isOpen, onClose, accountData }) => {
               </form>
             ) : (
               <>
-                <div style={{ height: "auto", margin: "0 auto", maxWidth: 200, width: "100%" }}>
+                <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%", background: "#fff", padding: 16, borderRadius: 8, boxSizing: "border-box" }}>
                   <QRCodeSVG
                     style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                     size={256}
-                    value={ncryptsec}
+                    value={ncryptsec.toUpperCase()}
                   />
                 </div>
                 <p className="break-string">
