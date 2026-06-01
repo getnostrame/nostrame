@@ -85,7 +85,7 @@ const DeriveAccountModal = ({ isOpen, onClose, callBack }) => {
         }),
       }
 
-      const signedEvent = finalizeEvent(event, prvKey)
+      const signedEvent = finalizeEvent(event, hexToBytes(prvKey))
       await Promise.any(pool.publish(relays, signedEvent))
     }
 

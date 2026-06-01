@@ -94,7 +94,7 @@ export const MainProvider = ({ children }) => {
     const derivedAccounts = vault.accounts || []
     for (let i = 0; i < derivedAccounts.length; i++) {
       const prvKey = derivedAccounts[i].prvKey
-      const pubKey = getPublicKey(prvKey)
+      const pubKey = getPublicKey(hexToBytes(prvKey))
       loadAccounts.push({
         index: i,
         name: '',
@@ -112,7 +112,7 @@ export const MainProvider = ({ children }) => {
     const importedAccounts = vault.importedAccounts || []
     for (let i = 0; i < importedAccounts.length; i++) {
       const prvKey = importedAccounts[i].prvKey
-      const pubKey = getPublicKey(prvKey)
+      const pubKey = getPublicKey(hexToBytes(prvKey))
       loadAccounts.push({
         index: i,
         name: '',

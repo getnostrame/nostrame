@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import { toast } from 'react-toastify'
 import { finalizeEvent } from 'nostr-tools/pure'
+import { hexToBytes } from 'nostr-tools/utils'
 import Loading from '../components/Loading'
 import MainContext from '../contexts/MainContext'
 import { getSessionVault } from '../common'
@@ -144,7 +145,7 @@ const RelaysPage = () => {
       }
 
       const event = createRelayListEvent(relays)
-      const signedEvent = finalizeEvent(event, vault.accountDefault)
+      const signedEvent = finalizeEvent(event, hexToBytes(vault.accountDefault))
 
       // Publish to current write relays + all discovery relays for visibility
       const writeRelays = relays.filter(r => r.write).map(r => r.url)
