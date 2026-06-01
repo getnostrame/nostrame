@@ -3,6 +3,7 @@ import {validateEvent, finalizeEvent, getPublicKey} from 'nostr-tools/pure'
 import * as nip19 from 'nostr-tools/nip19'
 import * as nip04 from 'nostr-tools/nip04'
 import * as nip44 from 'nostr-tools/nip44'
+import {hexToBytes} from 'nostr-tools/utils'
 import {Mutex} from 'async-mutex'
 import {LRUCache} from './utils'
 
@@ -28,20 +29,6 @@ import {
 
 import { clearAllCaches as clearProfileCaches, persistEncryptedCachesWithKey, restoreEncryptedCachesWithKey } from './services/cache'
 import { closeDiscoveryPool } from './helpers/outbox'
-
-/**
- * Convert a hex-encoded private key string to Uint8Array.
- * nostr-tools v2 changed its API to require Uint8Array for all private key
- * parameters (getPublicKey, finalizeEvent, nip04, nip44).  Vault data stores
- * private keys as hex strings, so we convert at every call site.
- */
-function hexToBytes(hex) {
-  const bytes = new Uint8Array(hex.length / 2)
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16)
-  }
-  return bytes
-}
 
 let openPrompt = null
 let promptMutex = new Mutex()

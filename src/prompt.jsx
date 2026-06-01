@@ -9,6 +9,7 @@ import {
   getSessionVault
 } from './common'
 import {getPublicKey} from 'nostr-tools/pure'
+import {hexToBytes} from 'nostr-tools/utils'
 
 function shortenPubkey(pubkey) {
   if (!pubkey) return ''
@@ -85,7 +86,7 @@ function Prompt() {
     try {
       const vault = await getSessionVault()
       if (vault?.accountDefault) {
-        const pk = getPublicKey(vault.accountDefault)
+        const pk = getPublicKey(hexToBytes(vault.accountDefault))
         setCurrentPubkey(pk)
       }
     } catch (err) {

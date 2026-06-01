@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import { finalizeEvent } from 'nostr-tools/pure'
+import { hexToBytes } from 'nostr-tools/utils'
 import Modal from './Modal'
 import { pool } from '../common'
 import { getWriteRelays } from '../helpers/outbox'
@@ -70,7 +71,7 @@ const EditAccountModal = ({ isOpen, onClose, accountData, callBack }) => {
         content: JSON.stringify(profileContent),
       }
 
-      const signedEvent = finalizeEvent(event, accountData.prvKey)
+      const signedEvent = finalizeEvent(event, hexToBytes(accountData.prvKey))
       await Promise.any(pool.publish(relays, signedEvent))
 
       // Update profile cache with new data
