@@ -32,7 +32,7 @@ const AutoLockTimeout = () => {
     <div className="options-card">
       <div className="options-card__header">
         <div className="options-card__icon">
-          <i className="icon-clock"></i>
+          <i className="icon-hour-glass"></i>
         </div>
         <div className="options-card__title">
           <h3>Auto-Lock Timeout</h3>
